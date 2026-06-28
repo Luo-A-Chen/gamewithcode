@@ -14,7 +14,7 @@ export class PlayingState extends State {
     // 根据当前关卡设置介绍和目标
     var levelName = game.levelManager.currentLevelName || 'level1';
     var levelInfo = {
-      level1: { world: '世界 1', title: '机械之心', subtitle: '1843 · 巴贝奇差分机', desc: '向右前进，踩 Boss 头顶3次击败它！', npc: '巴贝奇', boss: '踩头顶' },
+      level1: { world: '世界 1', title: '机械之心', subtitle: '1843 · 巴贝奇差分机', desc: '推动齿轮到正确位置，验证差分法！', npc: '巴贝奇', boss: '差分法验证 0/4' },
       level2: { world: '世界 2', title: '电子黎明', subtitle: '1943 · ENIAC', desc: '踩开关开门，击败暴走的继电器！', npc: '图灵', boss: '踩头顶' },
       level3: { world: '世界 3', title: '语言摇篮', subtitle: '1957 · FORTRAN', desc: '收集打孔卡片，找到递归出口！', npc: 'Hopper', boss: '去EXIT' },
       level4: { world: '世界 4', title: '结构之光', subtitle: '1972 · C语言', desc: '用管道传送，打败野指针幽灵！', npc: 'Ritchie', boss: '踩硬直' },
@@ -115,6 +115,38 @@ export class PlayingState extends State {
         }
         game.audio.playCollect();
         game.ui.showNotification('电路 ' + entities[i].switchId + ' 已连通', 'info', 1.5);
+      }
+    }
+
+    // 齿轮谜题（世界1）
+    if (levelName === 'level1' && !this._puzzleSolved) {
+      var slots = [];
+      var tokens = [];
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'GearSlot') slots.push(entities[i]);
+        if (entities[i].constructor.name === 'GearToken') tokens.push(entities[i]);
+      }
+      // 检查齿轮是否被推入槽位
+      for (i = 0; i < slots.length; i++) {
+        slots[i].checkPlacement(tokens);
+      }
+      // 检查是否全部正确
+      var allCorrect = true;
+      for (i = 0; i < slots.length; i++) {
+        if (!slots[i].filled || slots[i].filledValue !== slots[i].expectedValue) {
+          allCorrect = false;
+          break;
+        }
+      }
+      if (allCorrect && slots.length > 0) {
+        this._puzzleSolved = true;
+        game.ui.showNotification('差分法验证成功！二阶差分恒定！Boss 已激活！', 'collect', 4);
+        game.audio.playFragment();
+        // 标记目标完成
+        if (this._objectives.length > 1) {
+          this._objectives[1].done = true;
+          this._objectives[1].text = '差分法验证 ✓';
+        }
       }
     }
 
@@ -244,6 +276,7 @@ export class PlayingState extends State {
 
     game.ui.renderHUD(ctx, game);
     this.renderObjectives(ctx, game);
+    this.renderGearPuzzleUI(ctx, game);
     this.renderGuideArrow(ctx, game);
 
     if (this._activeNPC) {
@@ -361,6 +394,52 @@ export class PlayingState extends State {
     ctx.fillText(label, ax, ay + 28);
   }
 
+  /**
+   * 渲染齿轮谜题 UI（世界1专用）
+   */
+  renderGearPuzzleUI(ctx, game) {
+    if (game.levelManager.currentLevelName !== 'level1') return;
+    if (this._introTimer > 0) return;
+
+    var entities = game.entities;
+    var slots = [];
+    for (var i = 0; i < entities.length; i++) {
+      if (entities[i].constructor.name === 'GearSlot') slots.push(entities[i]);
+    }
+    if (slots.length === 0) return;
+
+    // 显示差分法公式
+    var x = game.width / 2;
+    var y = 50;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(x - 180, y - 25, 360, 55);
+    ctx.strokeStyle = 'rgba(233, 69, 96, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - 180, y - 25, 360, 55);
+
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('差分法：f(x) = x² + x + 1', x, y - 5);
+
+    // 显示各槽位状态
+    var status = '';
+    for (var j = 0; j < slots.length; j++) {
+      var s = slots[j];
+      if (s.filled && s.filledValue === s.expectedValue) {
+        status += 'f(' + s.slotId + ')=' + s.expectedValue + ' ✓  ';
+      } else if (s.filled) {
+        status += 'f(' + s.slotId + ')≠' + s.expectedValue + ' ✗  ';
+      } else {
+        status += 'f(' + s.slotId + ')=?   ';
+      }
+    }
+    ctx.fillStyle = '#aaa';
+    ctx.font = '11px monospace';
+    ctx.fillText(status.trim(), x, y + 15);
+  }
+
   updateObjectives(game) {
     if (this._objectives.length === 0) return;
 
@@ -378,7 +457,19 @@ export class PlayingState extends State {
     if (game.player && game.player.x > 750) this._objectives[2].done = true;
 
     // 每关独特目标
-    if (levelName === 'level2') {
+    if (levelName === 'level1') {
+      var gearsPlaced = 0;
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'GearSlot' && entities[i].filled &&
+            entities[i].filledValue === entities[i].expectedValue) {
+          gearsPlaced++;
+        }
+      }
+      if (!this._puzzleSolved) {
+        this._objectives[1].text = '差分法验证 ' + gearsPlaced + '/4';
+      }
+      if (gearsPlaced >= 4) this._objectives[1].done = true;
+    } else if (levelName === 'level2') {
       var switchesOn = 0;
       for (i = 0; i < entities.length; i++) {
         if (entities[i].constructor.name === 'Switch' && entities[i].activated) switchesOn++;

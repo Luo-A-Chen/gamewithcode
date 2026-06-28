@@ -20,9 +20,9 @@ export class CollisionSystem {
         a = entities[i];
         b = entities[j];
         if (CollisionSystem.aabb(a.getBounds(), b.getBounds())) {
-          if (a.constructor.name === 'Player' && b.constructor.name === 'PushableBox') {
+          if (a.constructor.name === 'Player' && (b.constructor.name === 'PushableBox' || b.constructor.name === 'GearToken')) {
             this.resolvePush(a, b);
-          } else if (b.constructor.name === 'Player' && a.constructor.name === 'PushableBox') {
+          } else if (b.constructor.name === 'Player' && (a.constructor.name === 'PushableBox' || a.constructor.name === 'GearToken')) {
             this.resolvePush(b, a);
           } else {
             if (a.onCollide) a.onCollide(b);

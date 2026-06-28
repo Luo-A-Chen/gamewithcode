@@ -6,6 +6,7 @@ import { BugLog } from '../entities/BugLog.js';
 import { PushableBox } from '../entities/PushableBox.js';
 import { DifferentialEngine } from '../entities/DifferentialEngine.js';
 import { Babbage } from '../entities/Babbage.js';
+import { GearToken, GearSlot } from '../entities/GearPuzzle.js';
 import { Switch } from '../entities/Switch.js';
 import { Door } from '../entities/Door.js';
 import { RelayBoss } from '../entities/RelayBoss.js';
@@ -50,32 +51,40 @@ export class LevelManager {
         spawn: { x: 64, y: 400 }, theme: 'gear',
         tiles: this.makeGearMap(),
         entities: [
-          // NPC：巴贝奇（起点附近，介绍差分机）
+          // NPC：巴贝奇
           new Babbage(140, 436),
 
-          // 齿轮（推到指定位置，体现差分机的齿轮计算）
-          new PushableBox(320, 448),
-          new PushableBox(520, 448),
+          // 差分法齿轮谜题：f(0)=1, f(1)=3, f(2)=7, f(3)=13
+          // 齿轮（散落，需要推到正确槽位）
+          new GearToken(250, 448, 13),
+          new GearToken(400, 448, 3),
+          new GearToken(550, 448, 7),
+          new GearToken(700, 448, 1),
 
-          // 敌人（只有2个，位置合理，不会堵路）
-          new Enemy(650, 448, 80),
+          // 槽位（目标位置，标注期望值）
+          new GearSlot(300, 444, 0, 1),
+          new GearSlot(420, 444, 1, 3),
+          new GearSlot(540, 444, 2, 7),
+          new GearSlot(660, 444, 3, 13),
 
-          // 金币（沿路线引导）
+          // 敌人
+          new Enemy(800, 448, 60),
+
+          // 金币
           new Collectible(200, 460),
-          new Collectible(350, 460),
-          new Collectible(500, 460),
-          new Collectible(700, 460),
+          new Collectible(450, 460),
+          new Collectible(650, 460),
 
-          // 语言碎片（都在地面上，容易收集）
-          new LanguageFragment(280, 456, 'w1_f1', 1),
-          new LanguageFragment(550, 456, 'w1_f2', 1),
+          // 语言碎片
+          new LanguageFragment(350, 456, 'w1_f1', 1),
+          new LanguageFragment(580, 456, 'w1_f2', 1),
           new LanguageFragment(750, 456, 'w1_f3', 1),
 
           // Bug 日志
-          new BugLog(450, 460, '1843_babbage'),
+          new BugLog(480, 460, '1843_babbage'),
 
-          // Boss：差分机（最右边）
-          new DifferentialEngine(850, 400),
+          // Boss（谜题完成后激活）
+          new DifferentialEngine(880, 400),
         ],
       };
     }
