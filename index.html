@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代码编年史 - Code Chronicle</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #game-container {
+      position: relative;
+      border: 2px solid #e94560;
+      border-radius: 4px;
+      box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+    }
+    canvas {
+      display: block;
+      background: #0f3460;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+  </div>
+  <script type="module" src="src/main.js?v=8"></script>
+</body>
+</html>
