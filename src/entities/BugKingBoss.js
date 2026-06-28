@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class BugKingBoss extends Boss {
   constructor(x, y) {
     super(x, y, 80, 80, 6);
+    this.dormantMessage = "进入最终区域后出现";
     this.attackCooldown = 2;
     this.projectiles = [];
     this.vulnerable = false;
@@ -48,6 +49,7 @@ export class BugKingBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;

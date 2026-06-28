@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class DifferentialEngine extends Boss {
   constructor(x, y) {
     super(x, y, 80, 80, 3); // 3 点血
+    this.dormantMessage = "完成齿轮谜题后出现";
     this.attackCooldown = 3;
     this.gearAngle = 0;
     this.gearSpeed = 2;
@@ -97,6 +98,7 @@ export class DifferentialEngine extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
 
     var cx = this.x + this.width / 2;

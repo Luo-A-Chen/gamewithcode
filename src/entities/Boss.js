@@ -1,14 +1,10 @@
 import { Entity } from './Entity.js';
 
-/**
- * Boss - Boss 基类
- * 管理阶段、血量、攻击模式
- */
 export class Boss extends Entity {
-  constructor(x, y, width, height, hp = 10) {
+  constructor(x, y, width, height, hp) {
     super(x, y, width, height);
-    this.hp = hp;
-    this.maxHp = hp;
+    this.hp = hp || 10;
+    this.maxHp = this.hp;
     this.phase = 1;
     this.alive = true;
     this.defeated = false;
@@ -18,16 +14,26 @@ export class Boss extends Entity {
     this.hitFlash = 0;
     this.introTimer = 0;
     this.isIntro = true;
+    this.dormant = true;  // 休眠状态：不可见、不可交互
+    this.dormantMessage = '完成挑战后 Boss 才会出现';
+  }
+
+  /**
+   * 激活 Boss
+   */
+  activate() {
+    this.dormant = false;
+    this.isIntro = true;
+    this.introTimer = 1.5;
   }
 
   takeDamage(amount) {
-    if (this.isIntro) return;
+    if (this.isIntro || this.dormant) return;
 
     this.hp -= amount;
     this.hitFlash = 0.15;
 
-    // 阶段切换
-    const hpPercent = this.hp / this.maxHp;
+    var hpPercent = this.hp / this.maxHp;
     if (hpPercent <= 0.33 && this.phase < 3) {
       this.phase = 3;
       this.onPhaseChange(3);
@@ -44,15 +50,12 @@ export class Boss extends Entity {
     }
   }
 
-  onPhaseChange(newPhase) {
-    // 子类重写
-  }
-
-  onDefeat() {
-    // 子类重写
-  }
+  onPhaseChange(newPhase) {}
+  onDefeat() {}
 
   update(dt) {
+    if (this.dormant) return;
+
     if (this.isIntro) {
       this.introTimer += dt;
       if (this.introTimer > 1.5) {
@@ -63,12 +66,10 @@ export class Boss extends Entity {
 
     if (!this.alive) return;
 
-    // 受击闪烁
     if (this.hitFlash > 0) {
       this.hitFlash -= dt;
     }
 
-    // 攻击逻辑
     this.attackTimer += dt;
     if (this.attackTimer >= this.attackCooldown) {
       this.attack();
@@ -78,31 +79,33 @@ export class Boss extends Entity {
     this.updateBoss(dt);
   }
 
-  attack() {
-    // 子类重写
-  }
-
-  updateBoss(dt) {
-    // 子类重写
-  }
+  attack() {}
+  updateBoss(dt) {}
 
   render(ctx) {
-    // 子类重写
+    if (this.dormant) {
+      // 休眠状态：显示提示
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('???', this.x + this.width / 2, this.y + this.height / 2);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.font = '10px monospace';
+      ctx.fillText(this.dormantMessage, this.x + this.width / 2, this.y + this.height + 16);
+      return;
+    }
   }
 
-  /**
-   * 绘制血条
-   */
   renderHealthBar(ctx, x, y, width) {
-    const barHeight = 6;
-    const hpPercent = this.hp / this.maxHp;
+    if (this.dormant) return;
 
-    // 背景
+    var barHeight = 6;
+    var hpPercent = this.hp / this.maxHp;
+
     ctx.fillStyle = '#333';
     ctx.fillRect(x, y, width, barHeight);
 
-    // 血量
-    let barColor;
+    var barColor;
     if (hpPercent > 0.66) barColor = '#4ecca3';
     else if (hpPercent > 0.33) barColor = '#ffd700';
     else barColor = '#e94560';
@@ -110,7 +113,6 @@ export class Boss extends Entity {
     ctx.fillStyle = barColor;
     ctx.fillRect(x, y, width * hpPercent, barHeight);
 
-    // 边框
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y, width, barHeight);

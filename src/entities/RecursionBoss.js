@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class RecursionBoss extends Boss {
   constructor(x, y) {
     super(x, y, 64, 64, 5);
+    this.dormantMessage = "收集所有打孔卡片后出现";
     this.attackCooldown = 2;
     this.projectiles = [];
     this.exitExposed = false;
@@ -50,6 +51,7 @@ export class RecursionBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;

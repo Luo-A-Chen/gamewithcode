@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class PointerBoss extends Boss {
   constructor(x, y) {
     super(x, y, 56, 56, 4);
+    this.dormantMessage = "到达核心区域后出现";
     this.attackCooldown = 2.5;
     this.projectiles = [];
     this.stunned = false;
@@ -45,6 +46,7 @@ export class PointerBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;

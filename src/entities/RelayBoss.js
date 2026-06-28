@@ -8,6 +8,7 @@ import { Boss } from './Boss.js';
 export class RelayBoss extends Boss {
   constructor(x, y) {
     super(x, y, 72, 72, 4); // 4 点血
+    this.dormantMessage = "连通所有电路后出现";
     this.attackCooldown = 2.5;
     this.projectiles = [];
     this.overloaded = false;
@@ -78,6 +79,7 @@ export class RelayBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
 
     var cx = this.x + this.width / 2;

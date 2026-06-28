@@ -152,14 +152,15 @@ export class PlayingState extends State {
 
       if (allCorrect && slots.length > 0 && machine && !machine.activated) {
         this._puzzleSolved = true;
-        // 激活差分机：f(0)=1, 一阶差分=2, 二阶差分=2
         machine.activate(1, 2, 2);
-        game.ui.showNotification('差分法验证成功！差分机开始自动计算！', 'collect', 3);
+        game.ui.showNotification('差分法验证成功！差分机开始自动计算！Boss 已激活！', 'collect', 3);
         game.audio.playFragment();
         if (this._objectives.length > 1) {
           this._objectives[1].done = true;
           this._objectives[1].text = '差分法验证 ✓';
         }
+        // 激活 Boss
+        this.activateBoss(entities);
       }
 
       // 防止齿轮重叠
@@ -179,6 +180,9 @@ export class PlayingState extends State {
         }
       }
     }
+
+    // 检查各关解谜完成条件，激活 Boss
+    this.checkPuzzleCompletion(game, entities, levelName);
 
     game.camera.update();
     game.particles.update(dt);
@@ -427,6 +431,100 @@ export class PlayingState extends State {
   /**
    * 渲染齿轮谜题 UI（世界1专用）
    */
+  /**
+   * 激活当前关卡的 Boss
+   */
+  activateBoss(entities) {
+    for (var i = 0; i < entities.length; i++) {
+      var e = entities[i];
+      if (e.constructor.name === 'DifferentialEngine' ||
+          e.constructor.name === 'RelayBoss' ||
+          e.constructor.name === 'RecursionBoss' ||
+          e.constructor.name === 'PointerBoss' ||
+          e.constructor.name === 'MemoryLeakBoss' ||
+          e.constructor.name === 'XSSBoss' ||
+          e.constructor.name === 'BugKingBoss') {
+        if (e.dormant) {
+          e.activate();
+        }
+      }
+    }
+  }
+
+  /**
+   * 检查每关的解谜完成条件，激活 Boss
+   */
+  checkPuzzleCompletion(game, entities, levelName) {
+    var i;
+
+    // 世界1：齿轮谜题（在齿轮谜题逻辑中处理）
+
+    // 世界2：两个开关都激活
+    if (levelName === 'level2' && !this._puzzleSolved) {
+      var switchesOn = 0;
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'Switch' && entities[i].activated) switchesOn++;
+      }
+      if (switchesOn >= 2) {
+        this._puzzleSolved = true;
+        this.activateBoss(entities);
+        game.ui.showNotification('电路全部连通！Boss 已激活！', 'collect', 3);
+      }
+    }
+
+    // 世界3：收集3张打孔卡片
+    if (levelName === 'level3' && !this._puzzleSolved) {
+      var cards = 0;
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'PunchCard' && entities[i].collected) cards++;
+      }
+      if (cards >= 3) {
+        this._puzzleSolved = true;
+        this.activateBoss(entities);
+        game.ui.showNotification('编程语句拼合完成！Boss 已激活！', 'collect', 3);
+      }
+    }
+
+    // 世界4：到达 Boss 区域
+    if (levelName === 'level4' && !this._puzzleSolved) {
+      if (game.player && game.player.x > 750) {
+        this._puzzleSolved = true;
+        this.activateBoss(entities);
+        game.ui.showNotification('进入核心区域！Boss 已激活！', 'collect', 2);
+      }
+    }
+
+    // 世界5：使用 ClassBlock 获得能力
+    if (levelName === 'level5' && !this._puzzleSolved) {
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'ClassBlock' && entities[i].used) {
+          this._puzzleSolved = true;
+          this.activateBoss(entities);
+          game.ui.showNotification('继承能力获取！Boss 已激活！', 'collect', 3);
+          break;
+        }
+      }
+    }
+
+    // 世界6：使用超链接传送
+    if (levelName === 'level6' && !this._puzzleSolved) {
+      if (game.player && game.player.x > 500) {
+        this._puzzleSolved = true;
+        this.activateBoss(entities);
+        game.ui.showNotification('网络连通！Boss 已激活！', 'collect', 2);
+      }
+    }
+
+    // 世界7：到达 Boss 区域
+    if (levelName === 'level7' && !this._puzzleSolved) {
+      if (game.player && game.player.x > 750) {
+        this._puzzleSolved = true;
+        this.activateBoss(entities);
+        game.ui.showNotification('进入最终区域！Bug King 已激活！', 'collect', 3);
+      }
+    }
+  }
+
   renderGearPuzzleUI(ctx, game) {
     if (game.levelManager.currentLevelName !== 'level1') return;
     if (this._introTimer > 0) return;

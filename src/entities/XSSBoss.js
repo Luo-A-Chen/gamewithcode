@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class XSSBoss extends Boss {
   constructor(x, y) {
     super(x, y, 72, 72, 5);
+    this.dormantMessage = "网络连通后出现";
     this.attackCooldown = 2;
     this.projectiles = [];
     this.coreExposed = false;
@@ -48,6 +49,7 @@ export class XSSBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;

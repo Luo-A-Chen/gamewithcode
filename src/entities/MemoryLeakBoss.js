@@ -7,6 +7,7 @@ import { Boss } from './Boss.js';
 export class MemoryLeakBoss extends Boss {
   constructor(x, y) {
     super(x, y, 64, 64, 4);
+    this.dormantMessage = "获得继承能力后出现";
     this.attackCooldown = 3;
     this.projectiles = [];
     this.shrinkPhase = false;
@@ -47,6 +48,7 @@ export class MemoryLeakBoss extends Boss {
   }
 
   render(ctx) {
+    if (this.dormant) { super.render(ctx); return; }
     if (!this.alive) return;
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;
