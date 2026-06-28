@@ -109,9 +109,9 @@ export class LevelManager {
           new Collectible(200, 460), new Collectible(400, 460), new Collectible(650, 460),
           new LanguageFragment(350, 456, 'w2_f1', 2),
           new LanguageFragment(550, 456, 'w2_f2', 2),
-          new LanguageFragment(800, 456, 'w2_f3', 2),
+          new LanguageFragment(760, 456, 'w2_f3', 2),
           new BugLog(500, 460, '1945_eniac'),
-          new RelayBoss(880, 408),
+          new RelayBoss(840, 408),
         ],
       };
     }

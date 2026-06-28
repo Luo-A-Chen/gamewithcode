@@ -60,7 +60,7 @@ export class RelayBoss extends Boss {
   updateBoss(dt) {
     // 左右移动
     this.x += this.moveSpeed * (this.moveDir || 1) * dt;
-    if (this.x < 600) this.moveDir = 1;
+    if (this.x < 700) this.moveDir = 1;
     if (this.x > 900) this.moveDir = -1;
 
     // 过载计时
