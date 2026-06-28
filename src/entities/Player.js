@@ -84,11 +84,56 @@ export class Player extends Entity {
     }
 
     // 变量高度跳跃：松开时增大重力
-    const isJumpHeld = input.isPressed('Space') || input.isPressed('ArrowUp') || input.isPressed('KeyW');
+    var isJumpHeld = input.isPressed('Space') || input.isPressed('ArrowUp') || input.isPressed('KeyW');
     this._isJumpHeld = isJumpHeld;
+
+    // 投掷（Shift 或 E 键）
+    if (input.isJustPressed('ShiftLeft') || input.isJustPressed('ShiftRight') || input.isJustPressed('KeyE')) {
+      this._throwPressed = true;
+    }
 
     // 存储输入方向供 update 使用
     this._inputDir = inputDir;
+  }
+
+  /**
+   * 尝试投掷附近的箱子/齿轮
+   */
+  tryThrow(entities) {
+    if (!this._throwPressed) return null;
+    this._throwPressed = false;
+
+    // 找最近的可投掷物体
+    var nearest = null;
+    var nearestDist = 60; // 投掷范围
+
+    for (var i = 0; i < entities.length; i++) {
+      var e = entities[i];
+      if ((e.constructor.name === 'GearToken' || e.constructor.name === 'PushableBox') && !e.inSlot) {
+        var dx = (e.x + e.width / 2) - (this.x + this.width / 2);
+        var dy = (e.y + e.height / 2) - (this.y + this.height / 2);
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = e;
+        }
+      }
+    }
+
+    if (nearest) {
+      // 投掷方向：面向方向，弧线
+      var dir = this.facingRight ? 1 : -1;
+      nearest.thrown = true;
+      nearest.throwVx = dir * 300; // 水平速度（3-4格距离）
+      nearest.throwVy = -350;      // 向上抛
+      nearest.inSlot = false;
+      if (nearest.slotId) {
+        // 从槽位弹出
+        nearest.slotId = null;
+      }
+      return nearest;
+    }
+    return null;
   }
 
   update(dt) {

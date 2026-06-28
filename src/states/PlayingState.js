@@ -74,6 +74,8 @@ export class PlayingState extends State {
 
     if (game.player && !game.player.dead) {
       game.player.handleInput(input);
+      // 投掷
+      game.player.tryThrow(game.entities);
     }
   }
 
@@ -123,30 +125,57 @@ export class PlayingState extends State {
     if (levelName === 'level1' && !this._puzzleSolved) {
       var slots = [];
       var tokens = [];
+      var machine = null;
       for (i = 0; i < entities.length; i++) {
         if (entities[i].constructor.name === 'GearSlot') slots.push(entities[i]);
         if (entities[i].constructor.name === 'GearToken') tokens.push(entities[i]);
+        if (entities[i].constructor.name === 'DifferentialMachine') machine = entities[i];
       }
+
       // 检查齿轮是否被推入槽位
       for (i = 0; i < slots.length; i++) {
-        slots[i].checkPlacement(tokens);
+        var result = slots[i].checkPlacement(tokens);
+        if (result && !result.correct) {
+          game.ui.showNotification('齿轮 ' + result.value + ' 不匹配！需要 ' + result.expected, 'warning', 1.5);
+          game.audio.playHurt();
+        } else if (result && result.correct) {
+          game.ui.showNotification('齿轮 ' + result.value + ' 放置正确！', 'collect', 1);
+          game.audio.playCollect();
+        }
       }
+
       // 检查是否全部正确
       var allCorrect = true;
       for (i = 0; i < slots.length; i++) {
-        if (!slots[i].filled || slots[i].filledValue !== slots[i].expectedValue) {
-          allCorrect = false;
-          break;
-        }
+        if (!slots[i].filled) { allCorrect = false; break; }
       }
-      if (allCorrect && slots.length > 0) {
+
+      if (allCorrect && slots.length > 0 && machine && !machine.activated) {
         this._puzzleSolved = true;
-        game.ui.showNotification('差分法验证成功！二阶差分恒定！Boss 已激活！', 'collect', 4);
+        // 激活差分机：f(0)=1, 一阶差分=2, 二阶差分=2
+        machine.activate(1, 2, 2);
+        game.ui.showNotification('差分法验证成功！差分机开始自动计算！', 'collect', 3);
         game.audio.playFragment();
-        // 标记目标完成
         if (this._objectives.length > 1) {
           this._objectives[1].done = true;
           this._objectives[1].text = '差分法验证 ✓';
+        }
+      }
+
+      // 防止齿轮重叠
+      for (i = 0; i < tokens.length; i++) {
+        for (var j = i + 1; j < tokens.length; j++) {
+          var a = tokens[i], b = tokens[j];
+          if (a.inSlot || b.inSlot) continue;
+          var dx = (a.x + a.width / 2) - (b.x + b.width / 2);
+          var dy = (a.y + a.height / 2) - (b.y + b.height / 2);
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 30) {
+            // 推开
+            var pushX = dx > 0 ? 2 : -2;
+            a.x += pushX;
+            b.x -= pushX;
+          }
         }
       }
     }
@@ -409,36 +438,34 @@ export class PlayingState extends State {
     }
     if (slots.length === 0) return;
 
-    // 显示差分法公式
     var x = game.width / 2;
-    var y = 50;
+    var y = 20;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(x - 180, y - 25, 360, 55);
-    ctx.strokeStyle = 'rgba(233, 69, 96, 0.5)';
+    // 背景
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, y, game.width - 20, 65);
+    ctx.strokeStyle = 'rgba(218, 165, 32, 0.5)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(x - 180, y - 25, 360, 55);
+    ctx.strokeRect(10, y, game.width - 20, 65);
 
+    // 差分法说明
     ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 13px monospace';
+    ctx.font = 'bold 12px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('差分法：f(x) = x² + x + 1', x, y - 5);
+    ctx.fillText('差分法：f(x) = x² + x + 1  |  一阶差分：2,4,6  |  二阶差分：2,2（恒定）', x, y + 16);
 
-    // 显示各槽位状态
-    var status = '';
-    for (var j = 0; j < slots.length; j++) {
-      var s = slots[j];
-      if (s.filled && s.filledValue === s.expectedValue) {
-        status += 'f(' + s.slotId + ')=' + s.expectedValue + ' ✓  ';
-      } else if (s.filled) {
-        status += 'f(' + s.slotId + ')≠' + s.expectedValue + ' ✗  ';
-      } else {
-        status += 'f(' + s.slotId + ')=?   ';
-      }
-    }
+    // 操作提示
     ctx.fillStyle = '#aaa';
     ctx.font = '11px monospace';
-    ctx.fillText(status.trim(), x, y + 15);
+    ctx.fillText('← → 推齿轮  |  Shift/E 投掷齿轮  |  放到对应数值的槽位', x, y + 32);
+
+    // 各槽位状态
+    var filled = 0;
+    for (var j = 0; j < slots.length; j++) {
+      if (slots[j].filled) filled++;
+    }
+    ctx.fillStyle = filled === slots.length ? '#4ecca3' : '#888';
+    ctx.fillText('齿轮放置：' + filled + '/' + slots.length, x, y + 52);
   }
 
   updateObjectives(game) {

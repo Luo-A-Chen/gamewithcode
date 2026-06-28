@@ -6,7 +6,7 @@ import { BugLog } from '../entities/BugLog.js';
 import { PushableBox } from '../entities/PushableBox.js';
 import { DifferentialEngine } from '../entities/DifferentialEngine.js';
 import { Babbage } from '../entities/Babbage.js';
-import { GearToken, GearSlot } from '../entities/GearPuzzle.js';
+import { GearToken, GearSlot, DifferentialMachine } from '../entities/GearPuzzle.js';
 import { Switch } from '../entities/Switch.js';
 import { Door } from '../entities/Door.js';
 import { RelayBoss } from '../entities/RelayBoss.js';
@@ -55,17 +55,20 @@ export class LevelManager {
           new Babbage(140, 436),
 
           // 差分法齿轮谜题：f(0)=1, f(1)=3, f(2)=7, f(3)=13
-          // 齿轮（散落，需要推到正确槽位）
-          new GearToken(250, 448, 13),
-          new GearToken(400, 448, 3),
-          new GearToken(550, 448, 7),
-          new GearToken(700, 448, 1),
+          // 齿轮（散落，需要推/扔到正确槽位）
+          new GearToken(220, 448, 1),
+          new GearToken(380, 448, 13),
+          new GearToken(520, 448, 7),
+          new GearToken(680, 448, 3),
 
-          // 槽位（目标位置，标注期望值）
-          new GearSlot(300, 444, 0, 1),
-          new GearSlot(420, 444, 1, 3),
-          new GearSlot(540, 444, 2, 7),
-          new GearSlot(660, 444, 3, 13),
+          // 槽位（带标签说明）
+          new GearSlot(300, 444, 0, 1, 'f(0)'),
+          new GearSlot(420, 444, 1, 3, 'f(1)'),
+          new GearSlot(540, 444, 2, 7, 'f(2)'),
+          new GearSlot(660, 444, 3, 13, 'f(3)'),
+
+          // 差分机（谜题完成后自动计算）
+          new DifferentialMachine(820, 380),
 
           // 敌人
           new Enemy(800, 448, 60),
