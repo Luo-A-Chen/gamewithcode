@@ -7,14 +7,16 @@ import { Boss } from './Boss.js';
  */
 export class RelayBoss extends Boss {
   constructor(x, y) {
-    super(x, y, 72, 72, 4); // 4 点血
+    super(x, y, 72, 72, 6); // 4 点血
     this.dormantMessage = "连通所有电路后出现";
-    this.attackCooldown = 2.5;
+    this.attackCooldown = 1.8;
     this.projectiles = [];
     this.overloaded = false;
     this.overloadTimer = 0;
     this.sparkTimer = 0;
     this.phase = 1;
+    this.moveDir = 1;
+    this.moveSpeed = 50;
   }
 
   attack() {
@@ -32,18 +34,35 @@ export class RelayBoss extends Boss {
     // Phase 2+: 斜向电弧
     if (this.phase >= 2) {
       var d = speed * 0.7;
+    this.projectiles.push(
+      { x: cx, y: cy, vx: d, vy: -d, radius: 5, life: 2, color: "#ff0" },
+      { x: cx, y: cy, vx: -d, vy: d, radius: 5, life: 2, color: "#ff0" }
+    );
       this.projectiles.push(
         { x: this.x + this.width / 2, y: this.y + this.height / 2, vx: d, vy: d, radius: 5, life: 2, color: '#ff0' },
         { x: this.x + this.width / 2, y: this.y + this.height / 2, vx: -d, vy: -d, radius: 5, life: 2, color: '#ff0' }
       );
     }
 
+    // Phase 3: 追踪弹
+    if (this.phase >= 3) {
+      this.projectiles.push({
+        x: this.x + this.width / 2, y: this.y + this.height / 2,
+        vx: this.moveDir * 120, vy: -100,
+        radius: 10, life: 4, color: "#f0f"
+      });
+    }
     // 攻击后过载
     this.overloaded = true;
     this.overloadTimer = 2;
   }
 
   updateBoss(dt) {
+    // 左右移动
+    this.x += this.moveSpeed * (this.moveDir || 1) * dt;
+    if (this.x < 600) this.moveDir = 1;
+    if (this.x > 900) this.moveDir = -1;
+
     // 过载计时
     if (this.overloaded) {
       this.overloadTimer -= dt;

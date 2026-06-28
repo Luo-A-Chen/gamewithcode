@@ -1,4 +1,5 @@
 import { State } from '../core/State.js';
+import { RewardItem } from "../entities/RewardItem.js";
 
 export class PlayingState extends State {
   enter(game) {
@@ -272,7 +273,30 @@ export class PlayingState extends State {
           game.score += 500;
           game.ui.showNotification('Boss 击败！+500分', 'collect', 3);
           game.particles.emit('fragment_collect', entity.x + entity.width / 2, entity.y + entity.height / 2, { count: 20 });
-          // 保存当前关卡名，通关后切换到下一关
+
+          // 掉落通关奖励道具
+          var worldNum = parseInt((game.levelManager.currentLevelName || 'level1').replace('level', ''));
+          var rewardInfo = null;
+          try {
+            var RewardItemMod = null;
+            // 动态获取奖励信息
+            var rewardMap = {
+              1: { name: '齿轮之心', desc: '差分机的核心齿轮' },
+              2: { name: '真空管', desc: 'ENIAC的真空管' },
+              3: { name: '打孔卡片', desc: 'FORTRAN程序载体' },
+              4: { name: 'C语言手册', desc: '系统编程语言' },
+              5: { name: '类蓝图', desc: '面向对象核心' },
+              6: { name: '超链接', desc: '万维网核心' },
+              7: { name: '神经元', desc: 'AI基本单元' },
+            };
+            rewardInfo = rewardMap[worldNum];
+          } catch(e) {}
+
+          if (rewardInfo) {
+            game.ui.showNotification('获得通关道具：' + rewardInfo.name, 'collect', 3);
+            game._lastReward = rewardInfo;
+          }
+
           var currentLevel = game.levelManager.currentLevelName || 'level1';
           setTimeout(function() {
             if (game.stateMachine.currentStateName === 'playing') {

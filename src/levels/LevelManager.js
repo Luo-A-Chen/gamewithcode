@@ -26,6 +26,7 @@ import { XSSBoss } from '../entities/XSSBoss.js';
 import { AINode } from '../entities/AINode.js';
 import { AINPC } from '../entities/AINPC.js';
 import { BugKingBoss } from '../entities/BugKingBoss.js';
+import { RewardItem } from "../entities/RewardItem.js";
 
 export class LevelManager {
   constructor() {
@@ -100,10 +101,10 @@ export class LevelManager {
         tiles: this.makeFlatMap(),
         entities: [
           new Turing(120, 436),
-          new Switch(300, 464, 'A'),
-          new Door(450, 368, 112, 'A'),
-          new Switch(600, 464, 'B'),
-          new Door(750, 368, 112, 'B'),
+          new Switch(250, 464, 'A'),
+          new Door(400, 0, 480, 'A'),    // 从顶到底完全封闭
+          new Switch(550, 464, 'B'),
+          new Door(700, 0, 480, 'B'),    // 从顶到底完全封闭
           new Enemy(500, 448, 50),
           new Collectible(200, 460), new Collectible(400, 460), new Collectible(650, 460),
           new LanguageFragment(350, 456, 'w2_f1', 2),

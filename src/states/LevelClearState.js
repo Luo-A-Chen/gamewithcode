@@ -64,17 +64,37 @@ export class LevelClearState extends State {
     if (this.showStats) {
       ctx.fillStyle = '#fff';
       ctx.font = '20px "Segoe UI", sans-serif';
-      ctx.fillText('得分: ' + game.score, width / 2, 240);
+      ctx.fillText('得分: ' + game.score, width / 2, 230);
+
+      // 通关奖励
+      if (game._lastReward) {
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 18px "Segoe UI", sans-serif';
+        ctx.fillText('获得通关道具', width / 2, 270);
+
+        // 道具框
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(width / 2 - 100, 285, 200, 60);
+
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px "Segoe UI", sans-serif';
+        ctx.fillText(game._lastReward.name, width / 2, 310);
+
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px "Segoe UI", sans-serif';
+        ctx.fillText(game._lastReward.desc, width / 2, 332);
+      }
 
       ctx.font = '36px "Segoe UI", sans-serif';
-      ctx.fillText('★ ★ ★', width / 2, 300);
+      ctx.fillText('★ ★ ★', width / 2, 380);
 
       ctx.fillStyle = '#888';
       ctx.font = '16px "Segoe UI", sans-serif';
       if (this.nextLevel) {
-        ctx.fillText('按 Space/Enter 进入下一关', width / 2, 380);
+        ctx.fillText('按 Space/Enter 进入下一关', width / 2, 430);
       } else {
-        ctx.fillText('恭喜通关！按 Space/Enter 返回主菜单', width / 2, 380);
+        ctx.fillText('恭喜通关！按 Space/Enter 返回主菜单', width / 2, 430);
       }
     }
 
