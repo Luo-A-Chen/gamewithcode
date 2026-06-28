@@ -15,6 +15,7 @@ import { PunchCard } from '../entities/PunchCard.js';
 import { Hopper } from '../entities/Hopper.js';
 import { RecursionBoss } from '../entities/RecursionBoss.js';
 import { Ritchie } from '../entities/Ritchie.js';
+import { PipePortal } from '../entities/PipePortal.js';
 import { PointerBoss } from '../entities/PointerBoss.js';
 import { ClassBlock } from '../entities/ClassBlock.js';
 import { Stroustrup } from '../entities/Stroustrup.js';
