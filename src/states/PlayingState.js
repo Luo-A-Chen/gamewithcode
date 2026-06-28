@@ -87,6 +87,7 @@ export class PlayingState extends State {
 
     var entities = game.entities;
     var i, entity;
+    var levelName = game.levelManager.currentLevelName || 'level1';
 
     for (i = 0; i < entities.length; i++) {
       entities[i].update(dt);
