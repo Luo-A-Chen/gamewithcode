@@ -1,43 +1,43 @@
 import { Entity } from './Entity.js';
 
-/**
- * Switch - 电路开关
- * 踩上去激活，连接对应的门
- */
 export class Switch extends Entity {
   constructor(x, y, switchId) {
     super(x, y, 32, 16);
     this.solid = false;
     this.switchId = switchId;
     this.activated = false;
-    this.color_off = '#555';
-    this.color_on = '#4ecca3';
+    this.cooldown = 0;
   }
 
   onCollide(other) {
-    if (other.constructor.name === 'Player' && !this.activated) {
-      // 玩家踩上去
-      if (other.y + other.height <= this.y + 8 && other.vy >= 0) {
+    if (other.constructor.name === 'Player' && !this.activated && this.cooldown <= 0) {
+      // 玩家底部接触开关顶部即可触发
+      var playerBottom = other.y + other.height;
+      if (playerBottom >= this.y && playerBottom <= this.y + this.height + 8) {
         this.activated = true;
-        other.grounded = true;
+        this.cooldown = 0.5;
+        // 让玩家站在开关上
         other.y = this.y - other.height;
-        other.vy = 0;
+        if (other.vy > 0) other.vy = 0;
+        other.grounded = true;
       }
     }
   }
 
   update(dt) {
-    // 开关无特殊更新
+    if (this.cooldown > 0) this.cooldown -= dt;
   }
 
   render(ctx) {
     // 底座
-    ctx.fillStyle = '#333';
-    ctx.fillRect(this.x, this.y + 8, this.width, 8);
+    ctx.fillStyle = '#444';
+    ctx.fillRect(this.x, this.y + 10, this.width, 6);
 
     // 按钮
-    ctx.fillStyle = this.activated ? this.color_on : this.color_off;
-    ctx.fillRect(this.x + 4, this.activated ? this.y + 4 : this.y, this.width - 8, this.activated ? 12 : 16);
+    ctx.fillStyle = this.activated ? '#4ecca3' : '#888';
+    var btnY = this.activated ? this.y + 6 : this.y;
+    var btnH = this.activated ? 10 : 16;
+    ctx.fillRect(this.x + 2, btnY, this.width - 4, btnH);
 
     // 指示灯
     ctx.fillStyle = this.activated ? '#0f0' : '#600';
@@ -46,9 +46,9 @@ export class Switch extends Entity {
     ctx.fill();
 
     // 标签
-    ctx.fillStyle = '#aaa';
-    ctx.font = '8px monospace';
+    ctx.fillStyle = this.activated ? '#4ecca3' : '#aaa';
+    ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(this.switchId, this.x + this.width / 2, this.y + 24);
+    ctx.fillText(this.activated ? '[ON]' : '[' + this.switchId + ']', this.x + this.width / 2, this.y + 26);
   }
 }

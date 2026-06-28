@@ -54,10 +54,10 @@ export class MenuState extends State {
     // ─── 关卡选择子菜单 ───
     if (this.subMenu === 'levels') {
       this.levelHoverIndex = -1;
-      var levels = this.getLevelList();
+      var levels = this.getLevelList(game);
       for (var i = 0; i < levels.length; i++) {
         var r = this.getLevelRect(game, i);
-        if (input.isMouseInRect(r.x, r.y, r.w, r.h)) {
+        if (input.isMouseInRect(r.x, r.y, r.w, r.h) && !levels[i].locked) {
           this.levelHoverIndex = i;
         }
       }
@@ -102,6 +102,7 @@ export class MenuState extends State {
       if (opt === '继续游戏') {
         var save = game.saveManager.load();
         if (save) {
+          game.completedLevels = (save.progress && save.progress.completedLevels) || [];
           game.loadLevel(save.progress.currentLevel || 'level1');
           game.score = save.progress.score || 0;
           if (game.player && save.progress.playerX) {
@@ -121,8 +122,9 @@ export class MenuState extends State {
     }
   }
 
-  getLevelList() {
-    return [
+  getLevelList(game) {
+    var completed = (game && game.completedLevels) || [];
+    var levels = [
       { id: 'level1', name: '世界1', sub: '机械之心', year: '1843', color: '#e94560' },
       { id: 'level2', name: '世界2', sub: '电子黎明', year: '1943', color: '#4ecca3' },
       { id: 'level3', name: '世界3', sub: '语言摇篮', year: '1957', color: '#0f0' },
@@ -131,6 +133,16 @@ export class MenuState extends State {
       { id: 'level6', name: '世界6', sub: '互联纪元', year: '1989', color: '#8f0' },
       { id: 'level7', name: '世界7', sub: '智能纪元', year: '2023', color: '#e94560' },
     ];
+    // 世界1始终解锁，其他需要前一关通关
+    for (var i = 0; i < levels.length; i++) {
+      if (i === 0) {
+        levels[i].locked = false;
+      } else {
+        levels[i].locked = completed.indexOf(levels[i - 1].id) < 0;
+      }
+      levels[i].completed = completed.indexOf(levels[i].id) >= 0;
+    }
+    return levels;
   }
 
   update(game, dt) {
@@ -199,9 +211,8 @@ export class MenuState extends State {
   renderLevelSelect(ctx, game) {
     var w = game.width;
     var h = game.height;
-    var levels = this.getLevelList();
+    var levels = this.getLevelList(game);
 
-    // 标题
     ctx.fillStyle = '#e94560';
     ctx.font = 'bold 32px "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
@@ -211,33 +222,51 @@ export class MenuState extends State {
     ctx.font = '14px "Segoe UI", sans-serif';
     ctx.fillText('点击进入对应世界  ESC返回', w / 2, 130);
 
-    // 关卡卡片
     for (var i = 0; i < levels.length; i++) {
       var lv = levels[i];
       var r = this.getLevelRect(game, i);
       var hovered = i === this.levelHoverIndex;
 
-      // 卡片背景
+      // 锁定状态
+      if (lv.locked) {
+        ctx.fillStyle = 'rgba(255,255,255,0.02)';
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+        ctx.fillStyle = '#444';
+        ctx.font = '14px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🔒', r.x + r.w / 2, r.y + 30);
+        ctx.font = '10px "Segoe UI", sans-serif';
+        ctx.fillText('通关前一关解锁', r.x + r.w / 2, r.y + 50);
+        continue;
+      }
+
+      // 已解锁
       ctx.fillStyle = hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)';
       ctx.fillRect(r.x, r.y, r.w, r.h);
-
-      // 边框
-      ctx.strokeStyle = hovered ? lv.color : 'rgba(255,255,255,0.2)';
+      ctx.strokeStyle = hovered ? lv.color : (lv.completed ? 'rgba(78,204,163,0.5)' : 'rgba(255,255,255,0.2)');
       ctx.lineWidth = hovered ? 2 : 1;
       ctx.strokeRect(r.x, r.y, r.w, r.h);
 
-      // 世界名
+      // 完成标记
+      if (lv.completed) {
+        ctx.fillStyle = '#4ecca3';
+        ctx.font = '10px "Segoe UI", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('✓', r.x + r.w - 6, r.y + 14);
+      }
+
       ctx.fillStyle = lv.color;
       ctx.font = 'bold 16px "Segoe UI", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(lv.name, r.x + r.w / 2, r.y + 24);
 
-      // 副标题
       ctx.fillStyle = '#aaa';
       ctx.font = '12px "Segoe UI", sans-serif';
       ctx.fillText(lv.sub, r.x + r.w / 2, r.y + 44);
 
-      // 年份
       ctx.fillStyle = '#666';
       ctx.font = '10px "Segoe UI", sans-serif';
       ctx.fillText(lv.year, r.x + r.w / 2, r.y + 60);

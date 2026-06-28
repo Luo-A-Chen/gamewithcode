@@ -9,6 +9,7 @@ import { ParticleSystem } from './ParticleSystem.js';
 import { UIManager } from '../ui/UIManager.js';
 import { AudioManager } from './AudioManager.js';
 import { SaveManager } from './SaveManager.js';
+import { TouchController } from './TouchController.js';
 import { MenuState } from '../states/MenuState.js';
 import { PlayingState } from '../states/PlayingState.js';
 import { PausedState } from '../states/PausedState.js';
@@ -23,6 +24,8 @@ export class Game {
     this.height = canvas.height;
 
     this.input = new InputManager();
+    this.touch = new TouchController(canvas);
+    this.input.setTouch(this.touch);
     this.camera = new Camera(this.width, this.height);
     this.renderer = new Renderer(this.ctx);
     this.collision = new CollisionSystem();
@@ -33,6 +36,7 @@ export class Game {
     this.running = false;
     this.lastTime = 0;
     this.score = 0;
+    this.completedLevels = [];
 
     this.particles = new ParticleSystem();
     this.ui = new UIManager();
@@ -64,11 +68,15 @@ export class Game {
   }
 
   loadLevel(name) {
-    const level = this.levelManager.load(name);
+    var level = this.levelManager.load(name);
     this.player = new Player(level.spawn.x, level.spawn.y);
-    this.entities = [this.player, ...level.entities];
+    this.entities = [this.player].concat(level.entities);
     this.camera.follow(this.player);
     this.score = 0;
+    var save = this.saveManager.load();
+    if (save && save.progress && save.progress.completedLevels) {
+      this.completedLevels = save.progress.completedLevels;
+    }
   }
 
   loop(timestamp) {

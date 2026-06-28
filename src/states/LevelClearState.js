@@ -14,8 +14,14 @@ export class LevelClearState extends State {
     this.showStats = false;
     this.statsTimer = 0;
 
-    // 确定下一关
+    // 标记当前关卡完成
     var current = game.levelManager.currentLevelName || 'level1';
+    if (game.completedLevels.indexOf(current) < 0) {
+      game.completedLevels.push(current);
+    }
+    game.saveManager.save(game);
+
+    // 确定下一关
     var levelOrder = ['level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7'];
     var idx = levelOrder.indexOf(current);
     this.nextLevel = (idx >= 0 && idx < levelOrder.length - 1) ? levelOrder[idx + 1] : null;

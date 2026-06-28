@@ -26,9 +26,9 @@ export class PlayingState extends State {
     this._introData = { world: info.world, title: info.title, subtitle: info.subtitle, desc: info.desc };
     this._objectives = [
       { text: '与' + info.npc + '对话 (按 ↑)', done: false },
-      { text: '收集语言碎片 0/3', done: false },
+      { text: info.boss, done: false },
       { text: '向右找到 Boss', done: false },
-      { text: info.boss + '击败Boss', done: false },
+      { text: '击败 Boss', done: false },
     ];
     this._levelName = levelName;
     game.audio.startBGM(levelName);
@@ -40,14 +40,14 @@ export class PlayingState extends State {
 
   handleInput(game, input) {
     if (this._introTimer > 0) {
-      if (input.isJustPressed('Space') || input.isJustPressed('Enter') || input._mouseClickedThisFrame) {
+      if (input.isJumpJustPressed() || input.isJustPressed('Enter') || input._mouseClickedThisFrame) {
         this._introTimer = 0;
       }
       return;
     }
 
     if (this._activeNPC) {
-      if (input.isJustPressed('Space') || input.isJustPressed('ArrowUp') || input.isJustPressed('KeyW')) {
+      if (input.isJumpJustPressed()) {
         this._activeNPC.nextDialog();
         if (!this._activeNPC.isTalking) {
           this._activeNPC = null;
@@ -56,12 +56,12 @@ export class PlayingState extends State {
       return;
     }
 
-    if (input.isJustPressed('Escape')) {
+    if (input.isPauseJustPressed()) {
       game.stateMachine.changeState('paused');
       return;
     }
 
-    if (input.isJustPressed('ArrowUp') || input.isJustPressed('KeyW') || input._mouseClickedThisFrame) {
+    if (input.isJumpJustPressed() || input._mouseClickedThisFrame) {
       var entities = game.entities;
       for (var i = 0; i < entities.length; i++) {
         if (entities[i].isNPC && entities[i].showPrompt) {
@@ -253,10 +253,16 @@ export class PlayingState extends State {
       this.renderIntro(ctx, game);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = '12px "Segoe UI", sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText('ESC 暂停', game.width - 16, game.height - 12);
+    // 暂停提示（非触屏时显示）
+    if (!game.touch.active) {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '12px "Segoe UI", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('ESC 暂停', game.width - 16, game.height - 12);
+    }
+
+    // 触屏虚拟按键
+    game.touch.render(ctx, game.width, game.height);
   }
 
   renderIntro(ctx, game) {
@@ -362,25 +368,40 @@ export class PlayingState extends State {
     var i;
     var levelName = game.levelManager.currentLevelName || 'level1';
 
-    // 碎片统计（通用）
+    // 碎片统计
     var collectedFragments = 0;
     for (i = 0; i < entities.length; i++) {
       if (entities[i].constructor.name === 'LanguageFragment' && entities[i].collected) collectedFragments++;
     }
-    this._objectives[1].text = '收集语言碎片 ' + collectedFragments + '/3';
-    if (collectedFragments >= 3) this._objectives[1].done = true;
 
     // 到达Boss区域
     if (game.player && game.player.x > 750) this._objectives[2].done = true;
 
-    // 世界2特殊：开关
+    // 每关独特目标
     if (levelName === 'level2') {
       var switchesOn = 0;
       for (i = 0; i < entities.length; i++) {
         if (entities[i].constructor.name === 'Switch' && entities[i].activated) switchesOn++;
       }
-      this._objectives[1].text = '踩开关开门 (' + switchesOn + '/2)';
+      this._objectives[1].text = '踩开关连通电路 ' + switchesOn + '/2';
       if (switchesOn >= 2) this._objectives[1].done = true;
+    } else if (levelName === 'level3') {
+      var cards = 0;
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'PunchCard' && entities[i].collected) cards++;
+      }
+      this._objectives[1].text = '收集打孔卡片 ' + cards + '/3';
+      if (cards >= 3) this._objectives[1].done = true;
+    } else if (levelName === 'level5') {
+      var hasAbility = false;
+      for (i = 0; i < entities.length; i++) {
+        if (entities[i].constructor.name === 'ClassBlock' && entities[i].used) hasAbility = true;
+      }
+      this._objectives[1].text = hasAbility ? '获得继承能力 ✓' : '踩Class方块获得能力';
+      if (hasAbility) this._objectives[1].done = true;
+    } else {
+      this._objectives[1].text = '收集语言碎片 ' + collectedFragments + '/3';
+      if (collectedFragments >= 3) this._objectives[1].done = true;
     }
 
     // Boss状态（通用）
@@ -390,9 +411,9 @@ export class PlayingState extends State {
       if (bossNames.indexOf(name) >= 0) {
         if (entities[i].defeated) {
           this._objectives[3].done = true;
-          this._objectives[3].text = '击败Boss ✓';
+          this._objectives[3].text = '击败 Boss ✓';
         } else {
-          this._objectives[3].text = '击败Boss (' + (entities[i].maxHp - entities[i].hp) + '/' + entities[i].maxHp + ')';
+          this._objectives[3].text = '击败 Boss (' + (entities[i].maxHp - entities[i].hp) + '/' + entities[i].maxHp + ')';
         }
       }
     }

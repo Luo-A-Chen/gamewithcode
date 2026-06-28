@@ -94,9 +94,24 @@ export class InputManager {
   isPressed(code) { return this.keys.has(code); }
   isJustPressed(code) { return this.justPressedKeys.has(code); }
 
-  get left()  { return this.isPressed('ArrowLeft')  || this.isPressed('KeyA'); }
-  get right() { return this.isPressed('ArrowRight') || this.isPressed('KeyD'); }
+  /**
+   * 设置触控控制器引用
+   */
+  setTouch(touch) {
+    this.touch = touch;
+  }
+
+  get left()  { return this.isPressed('ArrowLeft')  || this.isPressed('KeyA') || (this.touch && this.touch.left); }
+  get right() { return this.isPressed('ArrowRight') || this.isPressed('KeyD') || (this.touch && this.touch.right); }
   get up()    { return this.isPressed('ArrowUp')    || this.isPressed('KeyW'); }
   get down()  { return this.isPressed('ArrowDown')  || this.isPressed('KeyS'); }
-  get jump()  { return this.isPressed('Space')      || this.isPressed('ArrowUp'); }
+  get jump()  { return this.isPressed('Space')      || this.isPressed('ArrowUp') || (this.touch && this.touch.jump); }
+
+  isJumpJustPressed() {
+    return this.isJustPressed('Space') || this.isJustPressed('ArrowUp') || this.isJustPressed('KeyW') || (this.touch && this.touch.jumpJustPressed);
+  }
+
+  isPauseJustPressed() {
+    return this.isJustPressed('Escape') || (this.touch && this.touch.pauseJustPressed);
+  }
 }

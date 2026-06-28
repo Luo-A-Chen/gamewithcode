@@ -17,11 +17,12 @@ export class SaveManager {
       timestamp: new Date().toISOString(),
       progress: {
         currentWorld: 1,
-        currentLevel: 'level1',
+        currentLevel: game.levelManager.currentLevelName || 'level1',
         score: game.score,
         playerX: game.player ? game.player.x : 0,
         playerY: game.player ? game.player.y : 0,
         playerHP: game.player ? game.player.hp : 3,
+        completedLevels: game.completedLevels || [],
       },
       collectibles: {
         collectedCoins: this._getCollectedIds(game, 'Collectible'),

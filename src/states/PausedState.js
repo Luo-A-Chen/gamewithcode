@@ -28,7 +28,7 @@ export class PausedState extends State {
   }
 
   handleInput(game, input) {
-    if (input.isJustPressed('Escape')) {
+    if (input.isPauseJustPressed()) {
       game.stateMachine.changeState('playing');
       return;
     }
