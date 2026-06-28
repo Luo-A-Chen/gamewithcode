@@ -1,30 +1,25 @@
 import { NPC } from './NPC.js';
 
-/**
- * Babbage - 查尔斯·巴贝奇
- * 世界1 NPC，给玩家操作提示
- */
 export class Babbage extends NPC {
   constructor(x, y) {
     super(x, y, 28, 44, '巴贝奇', [
       '你好！我是查尔斯·巴贝奇，差分机的发明者。',
-      '这个世界被 Bug 侵蚀了，需要你来修复！',
-      '操作说明：← → 移动，空格跳跃（可二段跳）',
-      '一路向右走，收集金色菱形碎片。',
-      '遇到敌人可以踩它的头。',
-      '最右边有一个大 Boss，踩它头顶 3 次就能击败它！',
-      '小心 Boss 发射的齿轮弹幕，左右躲避即可。',
-      '去吧，勇士！修复历史的重任就交给你了！',
+      '1822年，我设计了差分机——用齿轮计算数学表。',
+      '原理是"差分法"：把复杂计算变成简单的加法。',
+      '看那些齿轮吗？推动它们到正确位置，就能启动机关。',
+      '操作：← → 移动，空格跳跃（可二段跳），↑ 对话',
+      '一路向右走，收集金色碎片，打败被Bug侵蚀的差分机！',
+      'Boss会发射齿轮弹幕，等它头顶变红时跳踩攻击！',
+      '去吧，用齿轮的力量修复这段历史！',
     ]);
     this.color = '#b8860b';
   }
 
   render(ctx) {
-    // 身体
     ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
 
-    // 帽子
+    // 帽子（维多利亚时代风格）
     ctx.fillStyle = '#8b6914';
     ctx.fillRect(this.x - 2, this.y - 8, this.width + 4, 8);
     ctx.fillRect(this.x + 4, this.y - 16, this.width - 8, 8);
