@@ -240,7 +240,7 @@ export class PlayingState extends State {
       entity = entities[i];
       var bossNames = ['DifferentialEngine', 'RelayBoss', 'RecursionBoss', 'PointerBoss', 'MemoryLeakBoss', 'XSSBoss', 'BugKingBoss'];
       var isBoss = bossNames.indexOf(entity.constructor.name) >= 0;
-      if (isBoss && entity.alive) {
+      if (isBoss && entity.alive && !entity.dormant) {
         // Boss 子弹伤害玩家
         for (var j = entity.projectiles.length - 1; j >= 0; j--) {
           var p = entity.projectiles[j];

@@ -253,7 +253,8 @@ export class DifferentialMachine extends Entity {
     var cx = this.x + this.width / 2;
     var cy = this.y + this.height / 2;
 
-    // 主体
+    // 主体（未激活时半透明）
+    ctx.globalAlpha = this.activated ? 1 : 0.4;
     ctx.fillStyle = this.activated ? '#2a1a0a' : '#1a1a2a';
     ctx.fillRect(this.x, this.y, this.width, this.height);
 
@@ -262,17 +263,30 @@ export class DifferentialMachine extends Entity {
     ctx.lineWidth = 3;
     ctx.strokeRect(this.x, this.y, this.width, this.height);
 
-    // 齿轮装饰
-    this.drawGear(ctx, cx, cy - 10, 20, 8, this.gearAngle);
-    this.drawGear(ctx, cx - 30, cy + 10, 12, 6, -this.gearAngle * 1.5);
-    this.drawGear(ctx, cx + 30, cy + 10, 14, 7, this.gearAngle * 0.8);
+    // 齿轮装饰（激活时才转动）
+    if (this.activated) {
+      this.drawGear(ctx, cx, cy - 10, 20, 8, this.gearAngle);
+      this.drawGear(ctx, cx - 30, cy + 10, 12, 6, -this.gearAngle * 1.5);
+      this.drawGear(ctx, cx + 30, cy + 10, 14, 7, this.gearAngle * 0.8);
+    } else {
+      this.drawGear(ctx, cx, cy - 10, 20, 8, 0);
+      this.drawGear(ctx, cx - 30, cy + 10, 12, 6, 0);
+      this.drawGear(ctx, cx + 30, cy + 10, 14, 7, 0);
+    }
 
     // 标题
-    ctx.fillStyle = '#daa520';
+    ctx.fillStyle = this.activated ? '#daa520' : '#666';
     ctx.font = 'bold 10px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('DIFFERENCE', cx, this.y - 8);
     ctx.fillText('ENGINE', cx, this.y + this.height + 14);
+
+    if (!this.activated) {
+      ctx.fillStyle = '#888';
+      ctx.font = '10px monospace';
+      ctx.fillText('等待验证...', cx, cy + 4);
+    }
+    ctx.globalAlpha = 1;
 
     // 自动计算输出
     if (this.showingTable && this.outputIndex < this.outputValues.length) {

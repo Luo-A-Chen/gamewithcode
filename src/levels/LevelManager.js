@@ -68,8 +68,8 @@ export class LevelManager {
           new GearSlot(540, 444, 2, 7, 'f(2)'),
           new GearSlot(660, 444, 3, 13, 'f(3)'),
 
-          // 差分机（谜题完成后自动计算）
-          new DifferentialMachine(820, 380),
+          // 差分机（齿轮谜题旁，用于显示计算结果）
+          new DifferentialMachine(750, 380),
 
           // 敌人
           new Enemy(800, 448, 60),
@@ -88,7 +88,7 @@ export class LevelManager {
           new BugLog(480, 460, '1843_babbage'),
 
           // Boss（谜题完成后激活）
-          new DifferentialEngine(880, 400),
+          new DifferentialEngine(860, 400),
         ],
       };
     }
